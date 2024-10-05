@@ -45,7 +45,7 @@ def create_playlist():
         minutes=req_data["minutes"],
         genre=req_data["genre"])
 
-    playlist_str = generate_playlist(playlist_request)
+    playlist_str = generate_playlist(playlist_request).replace("```","").replace("```","")
     playlist = json.loads(playlist_str)
 
     SCOPE = 'playlist-modify-public'
