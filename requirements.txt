@@ -3,3 +3,5 @@ openai
 flask
 flask-smorest
 flask-cors
+requests
+spotipy
