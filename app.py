@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import base64
@@ -43,9 +45,8 @@ def create_playlist():
         minutes=req_data["minutes"],
         genre=req_data["genre"])
 
-    playlist = generate_playlist(playlist_request)
-    print(playlist)
-    print(type(playlist))
+    playlist_str = generate_playlist(playlist_request)
+    playlist = json.loads(playlist_str)
 
     SCOPE = 'playlist-modify-public'
 
@@ -58,11 +59,11 @@ def create_playlist():
     user = sp.current_user()
     user_id = user['id']
 
-    song_info_list = [
-        {'track': 'Shape of You', 'artist': 'Ed Sheeran'},
-        {'track': 'Blinding Lights', 'artist': 'The Weeknd'},
-        {'track': 'Levitating', 'artist': 'Dua Lipa'}
-    ]
+    song_info_list = []
+
+    for song in playlist:
+        song_obj_spotify = {"track": song["songName"], "artist": song["artist"]}
+        song_info_list.append(song_obj_spotify)
 
     song_uris = __get_song_uris(song_info_list, sp)
 
