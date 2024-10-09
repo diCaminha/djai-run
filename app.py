@@ -1,15 +1,14 @@
-import json
-
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from flask_cors import CORS
 import base64
 import requests
 from dotenv import load_dotenv
 import os
 import spotipy
+import logging
 from spotipy.oauth2 import SpotifyOAuth
 
-from playlist_generator import generate_playlist, PlaylistRequest
+from business.playlist_generator import generate_playlist, PlaylistRequest
 
 app = Flask(__name__)
 
@@ -32,7 +31,8 @@ def __get_song_uris(song_info_list, sp):
             song_uri = tracks[0]['uri']
             song_uris.append(song_uri)
         else:
-            print(f"Song '{song['track']}' by '{song['artist']}' not found.")
+            logging.info(f"Song '{song['track']}' by '{song['artist']}' not found.")
+
     return song_uris
 
 @app.route("/playlists/generate", methods=["POST"])
@@ -43,10 +43,9 @@ def create_playlist():
     req_data = request.get_json()
     playlist_request = PlaylistRequest(
         minutes=req_data["minutes"],
-        genre=req_data["genre"])
+        style=req_data["style"])
 
-    playlist_str = generate_playlist(playlist_request).replace("```","").replace("```","")
-    playlist = json.loads(playlist_str)
+    playlist = generate_playlist(playlist_request)
 
     SCOPE = 'playlist-modify-public'
 
@@ -61,29 +60,26 @@ def create_playlist():
 
     song_info_list = []
 
-    for song in playlist:
+    for song in playlist["songs"]:
         song_obj_spotify = {"track": song["songName"], "artist": song["artist"]}
         song_info_list.append(song_obj_spotify)
 
     song_uris = __get_song_uris(song_info_list, sp)
 
-    playlist_name = f"{playlist_request.minutes} minutes of {playlist_request.genre}"
+    playlist_name = f"{playlist_request.minutes} minutes of {playlist_request.style}"
     playlist_description = 'Djai created a list for you! ;)'
 
     playlist = sp.user_playlist_create(user=user_id, name=playlist_name, public=True, description=playlist_description)
     playlist_id = playlist['id']
 
     sp.playlist_add_items(playlist_id=playlist_id, items=song_uris)
-    print(f"Playlist '{playlist_name}' created successfully with {len(song_uris)} songs.")
-
-    print(playlist)
+    logging.info(f"Playlist '{playlist_name}' created successfully with {len(song_uris)} songs.")
 
     return playlist
 
 @app.route("/register", methods=["POST"])
 def register_spotify():
     req_data = request.get_json()
-    print(req_data)
 
     payload = {
         "grant_type": "authorization_code",
@@ -99,7 +95,6 @@ def register_spotify():
     response = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
     if response.status_code == 200:
         token_info = response.json()
-        print(token_info)
         return {"data": token_info}
     else:
         return 'An error occurred', response.status_code
