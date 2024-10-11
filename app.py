@@ -87,7 +87,8 @@ def register_spotify():
         "redirect_uri": req_data["redirect_uri"]
     }
 
-    auth_header = base64.b64encode(f"{os.getenv("SPOTIFY_CLIENT_ID")}:{os.getenv("SPOTIFY_SECRET_KEY")}".encode('utf-8')).decode('utf-8')
+    auth_header = base64.b64encode(
+        f"{os.getenv('SPOTIFY_CLIENT_ID')}:{os.getenv('SPOTIFY_SECRET_KEY')}".encode('utf-8')).decode('utf-8')
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': 'Basic ' + auth_header
