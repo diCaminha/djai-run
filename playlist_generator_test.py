@@ -58,9 +58,8 @@ class TestPlaylistGenerator(unittest.TestCase):
         self.assertFalse(result)
         self.assertEqual(message, "Playlist created is too long.")
 
-    @patch('business.playlist_generator.get_completion_from_ai')  # Replace 'your_module' with your module name
+    @patch('business.playlist_generator.get_completion_from_ai')
     def test_generate_playlist(self, mock_get_completion):
-        # Mock the response from get_completion_from_ai
         mock_completion = MagicMock()
         mock_completion.choices = [MagicMock()]
         mock_completion.choices[0].message.content = json.dumps({
@@ -83,9 +82,8 @@ class TestPlaylistGenerator(unittest.TestCase):
         }
         self.assertEqual(result, expected_result)
 
-    @patch('business.playlist_generator.get_completion_from_ai')  # Replace 'your_module' with your module name
+    @patch('business.playlist_generator.get_completion_from_ai')
     def test_generate_playlist_with_retries(self, mock_get_completion):
-        # First response: invalid playlist (too short)
         mock_completion1 = MagicMock()
         mock_completion1.choices = [MagicMock()]
         mock_completion1.choices[0].message.content = json.dumps({
@@ -96,7 +94,6 @@ class TestPlaylistGenerator(unittest.TestCase):
             ]
         })
 
-        # Second response: valid playlist
         mock_completion2 = MagicMock()
         mock_completion2.choices = [MagicMock()]
         mock_completion2.choices[0].message.content = json.dumps({
@@ -107,7 +104,6 @@ class TestPlaylistGenerator(unittest.TestCase):
             ]
         })
 
-        # Set side effect for successive calls
         mock_get_completion.side_effect = [mock_completion1, mock_completion2]
 
         playlist_req = PlaylistRequest(minutes=5, style="rock")

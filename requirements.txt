@@ -5,3 +5,4 @@ flask-smorest
 flask-cors
 requests
 spotipy
+gunicorn

@@ -38,7 +38,7 @@ def check_playlist(playlist_candidate, seconds_required):
 
 
 def get_completion_from_ai(conversation):
-    client.chat.completions.create(
+    return client.chat.completions.create(
         model="gpt-4o-mini",
         messages=conversation
     )
