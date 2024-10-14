@@ -89,25 +89,29 @@ def generate_playlist(playlist_req: PlaylistRequest):
             "role": "user",
             "content": user_sample}
     ]
+    count_tries = 0
+    while count_tries < 4:
+        try:
+            completion = get_completion_from_ai(conversation)
+            playlist_candidate = json.loads(
+                completion.choices[0].message.content.replace("json```", "").replace("```", "").replace("json", ""))
 
-    while True:
-        completion = get_completion_from_ai(conversation)
-        playlist_candidate = json.loads(
-            completion.choices[0].message.content.replace("json```", "").replace("```", "").replace("json", ""))
+            length_playlist_in_sec = int(playlist_req.minutes) * 60
 
-        length_playlist_in_sec = int(playlist_req.minutes)*60
-
-        playlist_validated, message = check_playlist(playlist_candidate, length_playlist_in_sec)
-        if playlist_validated:
-            return playlist_candidate
-        else:
-            conversation.append({
-                "role": "assistant",
-                "content": completion.choices[0].message.content
-            })
-            conversation.append({
-                "role": "user",
-                "content": f"It's wrong. {message}. Please check the playlist and fix it. Follow the rules I gave you on creating the playlist. "
-                           f"And then return only the json object that I ask you, "
-                           f"dont need to apologyze or send another message beyond the json structure"
-            })
+            playlist_validated, message = check_playlist(playlist_candidate, length_playlist_in_sec)
+            if playlist_validated:
+                return playlist_candidate
+            else:
+                conversation.append({
+                    "role": "assistant",
+                    "content": completion.choices[0].message.content
+                })
+                conversation.append({
+                    "role": "user",
+                    "content": f"It's wrong. {message}. Please check the playlist and fix it. Follow the rules I gave you on creating the playlist. "
+                               f"And then return only the json object that I ask you, "
+                               f"dont need to apologyze or send another message beyond the json structure"
+                })
+        except Exception as e:
+            logging.error(e)
+            count_tries+= 1
