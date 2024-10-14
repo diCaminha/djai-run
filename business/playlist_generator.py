@@ -92,9 +92,6 @@ def generate_playlist(playlist_req: PlaylistRequest):
 
     while True:
         completion = get_completion_from_ai(conversation)
-
-        print(completion.choices[0].message.content)
-
         playlist_candidate = json.loads(
             completion.choices[0].message.content.replace("json```", "").replace("```", "").replace("json", ""))
 
