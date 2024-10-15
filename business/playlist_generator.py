@@ -29,7 +29,7 @@ def check_playlist(playlist_candidate, seconds_required):
         logging.info("Total of time created by AI is smaller than required.")
         return False, "Total of time created by AI is smaller than required."
 
-    if sum_real_total_seconds > (seconds_required + 100):
+    if sum_real_total_seconds > (seconds_required + os.getenv('LENGTH_THRESHOLD')):
         logging.info("Playlist created is too long.")
         return False, "Playlist created is too long."
 
