@@ -6,6 +6,12 @@ from dotenv import load_dotenv
 import os
 import logging
 
+import re
+
+def clean_response(response_content):
+    # Strip any non-JSON content
+    return re.sub(r'```json|```|json', '', response_content).strip()
+
 # Load the .env file
 load_dotenv()
 
@@ -93,8 +99,7 @@ def generate_playlist(playlist_req: PlaylistRequest):
     while count_tries < 4:
         try:
             completion = get_completion_from_ai(conversation)
-            playlist_candidate = json.loads(
-                completion.choices[0].message.content.replace("json```", "").replace("```", "").replace("json", ""))
+            playlist_candidate = json.loads(clean_response(completion.choices[0].message.content))
 
             length_playlist_in_sec = int(playlist_req.minutes) * 60
 
@@ -112,6 +117,11 @@ def generate_playlist(playlist_req: PlaylistRequest):
                                f"And then return only the json object that I ask you, "
                                f"dont need to apologyze or send another message beyond the json structure"
                 })
+        except json.JSONDecodeError as json_err:
+            logging.error(f"JSON decoding error: {json_err}")
+            count_tries += 1
+            continue
+
         except Exception as e:
             logging.error(e)
             count_tries+= 1
